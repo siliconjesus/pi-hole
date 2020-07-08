@@ -941,6 +941,14 @@ setStaticIPv4() {
             IFCFG_FILE=/etc/sysconfig/network-scripts/ifcfg-${CONNECTION_NAME}
             setIFCFG "${IFCFG_FILE}"
             return 0
+        else # Newer Red Hat based distros depricated the interface file
+            if [ -f /etc/redhat-release ]; then
+                INTERFACE_UUID=`nmcli connection show | grep ${PIHOLE_INTERFACE} | awk 'print ${NF -2}'`
+                nmcli connection modify ${INTERFACE_UUID} ipv4.method manual ipv4.address ${IPV4_ADDRESS}
+                nmcli connection modify ${INTERFACE_UUID} ipv4.dns ${PIHOLE_DNS_1}
+                nmcli connection modify ${INTERFACE_UUID} +ipv4.dns ${PIHOLE_DNS_2}
+                return 0
+            fi
         fi
     fi
     # If previous conditions failed, show an error and exit
